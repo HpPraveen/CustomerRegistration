@@ -48,21 +48,21 @@ namespace CustomerRegistration.Controllers
             return _response;
         }
 
-        [HttpGet("{customerId}")]
-        public object? GetCustomer(int customerId)
-        {
-            try
-            {
-                return _customerService.GetCustomer(customerId);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        //[HttpGet("{customerId}")]
+        //public object? GetCustomer(int customerId)
+        //{
+        //    try
+        //    {
+        //        return _customerService.GetCustomer(customerId);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return null;
+        //    }
+        //}
 
         [HttpGet("{name}")]
-        public object? SearchCustomers(string name)
+        public List<CustomerDto>? SearchCustomers(string name)
         {
             try
             {
