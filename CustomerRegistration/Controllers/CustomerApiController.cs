@@ -1,15 +1,17 @@
 ﻿using CustomerRegistration.Models.DTO;
 using CustomerRegistration.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerRegistration.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class CustomerApiController : ControllerBase
     {
         private readonly ICustomerService _customerService;
-        private readonly ResponseDto _response;
+        private ResponseDto _response;
 
         public CustomerApiController(ICustomerService customerService)
         {
@@ -18,8 +20,7 @@ namespace CustomerRegistration.Controllers
         }
 
         [HttpGet]
-        [Route("GetAllCustomers")]
-        public object? GetAllCustomers()
+        public List<CustomerDto>? GetAllCustomers()
         {
             try
             {
@@ -31,22 +32,23 @@ namespace CustomerRegistration.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("GetAllCustomersByPaging/{pageNumber}/{pageSize}")]
-        public object? GetAllCustomersByPaging(int pageNumber, int pageSize)
+        [HttpGet("{pageNumber}/{pageSize}/{name}")]
+        public object GetAllCustomersByPaging(int pageNumber, int pageSize, string name)
         {
             try
             {
-                return _customerService.GetAllCustomersByPaging(pageNumber, pageSize);
+                _response = (ResponseDto)_customerService.GetAllCustomersByPaging(pageNumber, pageSize, name);
+                _response.DisplayMessage = _response.Result == null ? "Empty Customers" : "Get customers by paging. Page # = " + pageNumber + "";
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return null;
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
             }
+            return _response;
         }
 
-        [HttpGet]
-        [Route("GetCustomer/{customerId}")]
+        [HttpGet("{customerId}")]
         public object? GetCustomer(int customerId)
         {
             try
@@ -59,8 +61,7 @@ namespace CustomerRegistration.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("SearchCustomers/{name}")]
+        [HttpGet("{name}")]
         public object? SearchCustomers(string name)
         {
             try
@@ -74,7 +75,6 @@ namespace CustomerRegistration.Controllers
         }
 
         [HttpPost]
-        [Route("CreateCustomer")]
         public object? CreateCustomer(CustomerDto customerDto)
         {
             try
@@ -88,7 +88,6 @@ namespace CustomerRegistration.Controllers
         }
 
         [HttpPut]
-        [Route("UpdateCustomer")]
         public object? UpdateCustomer(CustomerDto customerDto)
         {
             try
@@ -101,8 +100,7 @@ namespace CustomerRegistration.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("DeleteCustomer/{customerId}")]
+        [HttpDelete("{customerId}")]
         public object? DeleteCustomer(int customerId)
         {
             try

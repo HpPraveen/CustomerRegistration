@@ -4,6 +4,7 @@ using CustomerRegistration.Models;
 using CustomerRegistration.Models.DTO;
 using CustomerRegistration.Pagination;
 using CustomerRegistration.Services.IServices;
+using System.Linq.Expressions;
 
 namespace CustomerRegistration.Services
 {
@@ -18,7 +19,7 @@ namespace CustomerRegistration.Services
             _mapper = mapper;
         }
 
-        public object? GetAllCustomers()
+        public List<CustomerDto>? GetAllCustomers()
         {
             try
             {
@@ -32,13 +33,18 @@ namespace CustomerRegistration.Services
             }
         }
 
-        public object? GetAllCustomersByPaging(int pageNumber, int pageSize)
+        public object GetAllCustomersByPaging(int pageNumber, int pageSize, string name)
         {
             try
             {
+                List<Expression<Func<Customer, bool>>> filters = new();
+
+                if (!string.IsNullOrEmpty(name))
+                    filters.Add(c => c.Name.Contains(name));
+
                 static IOrderedQueryable<Customer> orderBy(IQueryable<Customer> o) => o.OrderByDescending(d => d.SysCreatedOn);
 
-                var customerList = _genericUnitOfWork.CustomerRepository.GetPaging(orderBy: orderBy, pageNumber: pageNumber, pageSize: pageSize);
+                var customerList = _genericUnitOfWork.CustomerRepository.GetPaging(orderBy: orderBy, filters: filters, pageNumber: pageNumber, pageSize: pageSize);
 
                 ResponseDto response = (ResponseDto)customerList;
                 var totalAds = response.TotalRecords;
@@ -52,7 +58,7 @@ namespace CustomerRegistration.Services
             }
         }
 
-        public object? GetCustomer(int customerId)
+        public CustomerDto GetCustomer(int customerId)
         {
             try
             {
@@ -66,7 +72,7 @@ namespace CustomerRegistration.Services
             }
         }
 
-        public object? SearchCustomers(string name)
+        public List<CustomerDto>? SearchCustomers(string name)
         {
             try
             {
@@ -80,7 +86,7 @@ namespace CustomerRegistration.Services
             }
         }
 
-        public object? CreateUpdateCustomer(CustomerDto customerDto)
+        public CustomerDto CreateUpdateCustomer(CustomerDto customerDto)
         {
             try
             {
@@ -92,7 +98,7 @@ namespace CustomerRegistration.Services
                 }
                 else
                 {
-                    var availableCustomerList = _genericUnitOfWork.CustomerRepository.Get(c => c.NIC == customer.NIC /*&& c.IsDeleted == false*/).ToList();
+                    var availableCustomerList = _genericUnitOfWork.CustomerRepository.Get(c => c.Mail == customer.Mail /*&& c.IsDeleted == false*/).ToList();
                     if (availableCustomerList.Count > 0)
                     {
                         return null;
